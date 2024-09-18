@@ -57,6 +57,7 @@ UART_HandleTypeDef huart3;
 uint8_t usart2_buffer[USART2_BUFFER_SIZE];
 ring_buffer_t usart2_rb;
 uint8_t usart2_rx;
+uint8_t enter = 0;
 
 
 uint32_t left_toggles = 0;
@@ -96,9 +97,28 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	uint8_t key_pressed = keypad_scan(GPIO_Pin);
 	if (key_pressed != 0xFF) {
-		printf("Pressed: %c\r\n", key_pressed);
-		return;
-	}
+			// Al presionar # o * se cambia la variable enter a 1 y se sale del callback
+			if(key_pressed == '#'){
+				printf("ENTER: %c\r\n", key_pressed);
+				enter = 1;
+				return;
+			}else if(key_pressed == '*'){
+				ring_buffer_reset(&usart2_rb);
+				HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+				printf("RESET: enter again %c\r\n", key_pressed);
+
+				// Reseteamos el mensaje igualmente:
+				ssd1306_FillRectangle(37, 50, 97, 20, Black);
+				ssd1306_SetCursor(45, 30);
+				ssd1306_WriteString("Hello!", Font_7x10, White);
+				ssd1306_UpdateScreen();
+				return;
+			}
+
+			printf("Pressed: %c\r\n", key_pressed);
+			ring_buffer_write(&usart2_rb, key_pressed);
+			return;
+		}
 
 	if (GPIO_Pin == BUTTON_RIGHT_Pin) {
 		HAL_UART_Transmit(&huart2, (uint8_t *)"S1\r\n", 4, 10);
@@ -153,7 +173,6 @@ void low_power_mode()
 int main(void)
 {
 
-	// COMMIT DE PRUEBA PAULINAG
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -194,6 +213,11 @@ int main(void)
   printf("Starting...\r\n");
   //HAL_UART_Receive_IT(&huart2, &usart2_rx, 1); // enable interrupt for USART2 Rx
   ATOMIC_SET_BIT(USART2->CR1, USART_CR1_RXNEIE); // usando un funcion mas liviana para reducir memoria
+
+  //variables de control
+  uint8_t cont = 0;
+  uint8_t toggle = 0;
+
   while (1) {
 //	  if (ring_buffer_is_full(&usart2_rb) != 0) {
 //		  printf("Received:\r\n");
@@ -205,33 +229,64 @@ int main(void)
 //		  printf("\r\n");
 //	  }
 
-  if(ring_buffer_size(&usart2_rb) != 0){
-				  uint8_t size = ring_buffer_size(&usart2_rb);
-				  size = size+0x30; //para que muestre el número en decimal
+  if (enter == 1) {
+		  printf("Received:\r\n");
+		  while (ring_buffer_is_empty(&usart2_rb) == 0) {
+			  uint8_t data[4];
+			  uint8_t read;
 
-				 // if(ring_buffer_is_full()){ //si está lleno se comienzan a leer los datos
-				  if (ring_buffer_is_full(&usart2_rb) != 0) {
-					  uint8_t byte = 0;
-					  uint8_t data2[4];
+			  for (uint8_t i = 0; i <= 4; i++){
+				  ring_buffer_read(&usart2_rb, &read);
+				  data[i] = read;
+			  };
 
-					  for (uint8_t i = 0; i <= 11; i++){//recorre cada espacio para leerlo
-						  ring_buffer_read(&usart2_rb, &byte); //cambia el limite de i
-						 HAL_UART_Transmit(&huart2, &byte, 1, 10);
-						  data2[i] = byte;
-					}
-					  if(right_password(data2)){
-							HAL_UART_Transmit(&huart2, "Welcome\r\n", 9, 10);
-//							ssd1306_WriteString("Welcome", Font_6x8, White);
-//							ssd1306_UpdateScreen();
-					  }else {
+			  if(right_password(data)){
+				  cont = 0;
+				  toggle = 0;
+				  printf("Welcome to your home!");
 
-						HAL_UART_Transmit(&huart2, "Incorrecto\r\n", 12, 10);
+				  // Si hay algo escrito, se borra:
+				  ssd1306_FillRectangle(37, 50, 97, 20, Black);
+				  ssd1306_SetCursor(40, 30);
+				  ssd1306_UpdateScreen();
 
-					  }
-//					 HAL_UART_Transmit(&huart2, &size, 1, 10);
-				  }
+				  // Se escribe el mensaje
+				  ssd1306_WriteString("Welcome!", Font_7x10, White);
+				  ssd1306_UpdateScreen();
+
+				  // Sen enciende el led:
+				  blinking_on_led();
+
+			  }else{
+				  printf("Alerta!");
+
+				  ssd1306_FillRectangle(37, 50, 97, 20, Black);
+				  ssd1306_SetCursor(45, 30);
+				  ssd1306_UpdateScreen();
+
+				  ssd1306_WriteString("Alerta!", Font_7x10, White);
+				  ssd1306_UpdateScreen();
+
+				  // Se enciende el led 3 veces si la contraseña es incorrecta:
+				  //blinking_led();
+				  cont = 1;
+				  toggle = 6;
+
+				  // Si el led está encendido, se apaga completamente
+				  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 			  }
-	  low_power_mode();
+		  }
+	  		  printf("\r\n");
+	  		  //ring_buffer_reset(usart2_rb);
+
+	  		  enter = 0;
+	  	  }
+
+	  if(cont != 0){
+		  cont = blinking_led_ret(&toggle);
+		  }else{
+		  low_power_mode();
+		  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -418,7 +473,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LED_HEARTBEAT_Pin|LED_LEFT_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|LED_LEFT_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(ROW_1_GPIO_Port, ROW_1_Pin, GPIO_PIN_SET);
@@ -435,8 +490,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LED_HEARTBEAT_Pin LED_LEFT_Pin */
-  GPIO_InitStruct.Pin = LED_HEARTBEAT_Pin|LED_LEFT_Pin;
+  /*Configure GPIO pins : LD2_Pin LED_LEFT_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin|LED_LEFT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
