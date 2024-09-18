@@ -63,10 +63,12 @@ void Error_Handler(void);
 #define BUTTON_RIGHT_Pin GPIO_PIN_4
 #define BUTTON_RIGHT_GPIO_Port GPIOA
 #define BUTTON_RIGHT_EXTI_IRQn EXTI4_IRQn
-#define LD2_Pin GPIO_PIN_5
-#define LD2_GPIO_Port GPIOA
-#define LED_LEFT_Pin GPIO_PIN_7
-#define LED_LEFT_GPIO_Port GPIOA
+#define Room_Pin GPIO_PIN_5
+#define Room_GPIO_Port GPIOA
+#define Living_Pin GPIO_PIN_6
+#define Living_GPIO_Port GPIOA
+#define Bathroom_Pin GPIO_PIN_7
+#define Bathroom_GPIO_Port GPIOA
 #define COLUMN_1_Pin GPIO_PIN_10
 #define COLUMN_1_GPIO_Port GPIOB
 #define COLUMN_1_EXTI_IRQn EXTI15_10_IRQn
@@ -87,8 +89,8 @@ void Error_Handler(void);
 #define ROW_4_GPIO_Port GPIOB
 #define ROW_3_Pin GPIO_PIN_5
 #define ROW_3_GPIO_Port GPIOB
-#define LED_RIGHT_Pin GPIO_PIN_6
-#define LED_RIGHT_GPIO_Port GPIOB
+#define Kitchen_Pin GPIO_PIN_6
+#define Kitchen_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

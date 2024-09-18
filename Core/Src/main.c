@@ -200,10 +200,7 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
-//  ssd1306_Init();
-//  ssd1306_SetCursor(25, 30);
-//  ssd1306_WriteString("Hello World!", Font_7x10, White);
-//  ssd1306_UpdateScreen();
+  ssd1306_Init();
 
   ring_buffer_init(&usart2_rb, usart2_buffer, USART2_BUFFER_SIZE);
   /* USER CODE END 2 */
@@ -255,7 +252,7 @@ int main(void)
 				  ssd1306_UpdateScreen();
 
 				  // Sen enciende el led:
-				  blinking_on_led();
+				  //blinking_on_led();
 
 			  }else{
 				  printf("Alerta!");
@@ -273,7 +270,7 @@ int main(void)
 				  toggle = 6;
 
 				  // Si el led está encendido, se apaga completamente
-				  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+				 // HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 			  }
 		  }
 	  		  printf("\r\n");
@@ -473,7 +470,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD2_Pin|LED_LEFT_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, Room_Pin|Living_Pin|Bathroom_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(ROW_1_GPIO_Port, ROW_1_Pin, GPIO_PIN_SET);
@@ -482,7 +479,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, ROW_2_Pin|ROW_4_Pin|ROW_3_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LED_RIGHT_GPIO_Port, LED_RIGHT_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(Kitchen_GPIO_Port, Kitchen_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : BUTTON_LEFT_Pin BUTTON_RIGHT_Pin */
   GPIO_InitStruct.Pin = BUTTON_LEFT_Pin|BUTTON_RIGHT_Pin;
@@ -490,8 +487,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD2_Pin LED_LEFT_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin|LED_LEFT_Pin;
+  /*Configure GPIO pins : Room_Pin Living_Pin Bathroom_Pin */
+  GPIO_InitStruct.Pin = Room_Pin|Living_Pin|Bathroom_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -529,12 +526,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : LED_RIGHT_Pin */
-  GPIO_InitStruct.Pin = LED_RIGHT_Pin;
+  /*Configure GPIO pin : Kitchen_Pin */
+  GPIO_InitStruct.Pin = Kitchen_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LED_RIGHT_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(Kitchen_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
