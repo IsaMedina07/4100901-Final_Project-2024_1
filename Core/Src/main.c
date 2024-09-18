@@ -58,6 +58,7 @@ uint8_t usart2_buffer[USART2_BUFFER_SIZE];
 ring_buffer_t usart2_rb;
 uint8_t usart2_rx;
 
+
 uint32_t left_toggles = 0;
 uint32_t left_last_press_tick = 0;
 /* USER CODE END PV */
@@ -180,10 +181,10 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  ssd1306_Init();
-  ssd1306_SetCursor(25, 30);
-  ssd1306_WriteString("Hello World!", Font_7x10, White);
-  ssd1306_UpdateScreen();
+//  ssd1306_Init();
+//  ssd1306_SetCursor(25, 30);
+//  ssd1306_WriteString("Hello World!", Font_7x10, White);
+//  ssd1306_UpdateScreen();
 
   ring_buffer_init(&usart2_rb, usart2_buffer, USART2_BUFFER_SIZE);
   /* USER CODE END 2 */
@@ -194,15 +195,42 @@ int main(void)
   //HAL_UART_Receive_IT(&huart2, &usart2_rx, 1); // enable interrupt for USART2 Rx
   ATOMIC_SET_BIT(USART2->CR1, USART_CR1_RXNEIE); // usando un funcion mas liviana para reducir memoria
   while (1) {
-	  if (ring_buffer_is_full(&usart2_rb) != 0) {
-		  printf("Received:\r\n");
-		  while (ring_buffer_is_empty(&usart2_rb) == 0) {
-			  uint8_t data;
-			  ring_buffer_read(&usart2_rb, &data);
-			  HAL_UART_Transmit(&huart2, &data, 1, 10);
-		  }
-		  printf("\r\n");
-	  }
+//	  if (ring_buffer_is_full(&usart2_rb) != 0) {
+//		  printf("Received:\r\n");
+//		  while (ring_buffer_is_empty(&usart2_rb) == 0) {
+//			  uint8_t data;
+//			  ring_buffer_read(&usart2_rb, &data);
+//			  HAL_UART_Transmit(&huart2, &data, 1, 10);
+//		  }
+//		  printf("\r\n");
+//	  }
+
+  if(ring_buffer_size(&usart2_rb) != 0){
+				  uint8_t size = ring_buffer_size(&usart2_rb);
+				  size = size+0x30; //para que muestre el número en decimal
+
+				 // if(ring_buffer_is_full()){ //si está lleno se comienzan a leer los datos
+				  if (ring_buffer_is_full(&usart2_rb) != 0) {
+					  uint8_t byte = 0;
+					  uint8_t data2[4];
+
+					  for (uint8_t i = 0; i <= 11; i++){//recorre cada espacio para leerlo
+						  ring_buffer_read(&usart2_rb, &byte); //cambia el limite de i
+						 HAL_UART_Transmit(&huart2, &byte, 1, 10);
+						  data2[i] = byte;
+					}
+					  if(right_password(data2)){
+							HAL_UART_Transmit(&huart2, "Welcome\r\n", 9, 10);
+//							ssd1306_WriteString("Welcome", Font_6x8, White);
+//							ssd1306_UpdateScreen();
+					  }else {
+
+						HAL_UART_Transmit(&huart2, "Incorrecto\r\n", 12, 10);
+
+					  }
+//					 HAL_UART_Transmit(&huart2, &size, 1, 10);
+				  }
+			  }
 	  low_power_mode();
     /* USER CODE END WHILE */
 

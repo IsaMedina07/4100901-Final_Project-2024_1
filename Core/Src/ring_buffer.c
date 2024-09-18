@@ -1,6 +1,7 @@
 
 #include "ring_buffer.h"
 
+uint8_t numberID[] = {'1','2','3','4'};
 
 void ring_buffer_init(ring_buffer_t *rb, uint8_t *mem_add, uint8_t cap)
 {
@@ -109,5 +110,15 @@ uint8_t ring_buffer_read(ring_buffer_t *rb, uint8_t *data) // 0x20
 		return 1; // buffer con datos
 	}
 	return 0; // buffer vacio
+}
+
+uint8_t right_password(uint8_t *data){
+
+	 if (memcmp(data, numberID, sizeof(numberID)) != 0) {
+	        return 0;
+	    } else {
+	       return 1;
+	    }
+
 }
 
