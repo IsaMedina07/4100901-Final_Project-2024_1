@@ -152,6 +152,7 @@ void low_power_mode()
 int main(void)
 {
 
+	// COMMIT DE PRUEBA PAULINAG
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -179,12 +180,12 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  ssd1306_Init();
+  /*ssd1306_Init();
   ssd1306_SetCursor(25, 30);
   ssd1306_WriteString("Hello World!", Font_7x10, White);
   ssd1306_UpdateScreen();
 
-  ring_buffer_init(&usart2_rb, usart2_buffer, USART2_BUFFER_SIZE);
+  ring_buffer_init(&usart2_rb, usart2_buffer, USART2_BUFFER_SIZE);*/
   /* USER CODE END 2 */
 
   /* Infinite loop */
