@@ -103,17 +103,15 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 				enter = 1;
 				return;
 				if(key_pressed == 'A'){
-					place == 1;
+					place = 1;
+				}else if(key_pressed == 'B'){
+					place = 2;
+				}else if(key_pressed == 'C'){
+					place = 3;
+				}else if(key_pressed == 'D'){
+					place = 4;
 				}
-				if(key_pressed == 'B'){
-					place == 2;
-				}
-				if(key_pressed == 'C'){
-					place == 3;
-				}
-				if(key_pressed == 'D'){
-					place == 4;
-				}
+
 			}else if(key_pressed == '*'){
 				ring_buffer_reset(&usart2_rb);
 				printf("RESET: enter again %c\r\n", key_pressed);
@@ -176,6 +174,7 @@ void low_power_mode()
 
 	printf("Awake\r\n");
 }
+
 /* USER CODE END 0 */
 
 /**
@@ -252,28 +251,14 @@ int main(void)
 			  if(right_password(data)){
 				  cont = 0;
 				  toggle = 0;
-				  printf("Welcome to your home!\r\n");
-				  printf("In which room do you want to be?\r\n\n");
-				  printf("Bedroom: Press A \r\n");
-				  printf("Living Room: Press B \r\n");
-				  printf("bathroom: Press C \r\n");
-				  printf("Kitchen: Press D \r\n");
+				  //nstrucciones
+				  messages();
+				  //enciende el led correspondiente
+				  light_on(place);
 
-				  switch(place){
+				  //apaga la luz de la habitación correspondiente dependiendo del tiempo
+				  turn_off(place);
 
-				  case 1: HAL_GPIO_WritePin(Room_GPIO_Port, Room_Pin, GPIO_PIN_RESET);
-				  break;
-
-				  case 2: HAL_GPIO_WritePin(Living_GPIO_Port, Living_Pin, GPIO_PIN_SET);
-				  break;
-
-				  case 3: HAL_GPIO_WritePin(Bathroom_GPIO_Port, Bathroom_Pin, GPIO_PIN_SET);
-				  break;
-
-				  case 4: HAL_GPIO_WritePin(Kitchen_GPIO_Port, Kitchen_Pin, GPIO_PIN_SET);
-				  break;
-
-				  }
 
 				  // Si hay algo escrito, se borra:
 				  ssd1306_FillRectangle(37, 50, 97, 20, Black);
@@ -284,7 +269,7 @@ int main(void)
 				  ssd1306_WriteString("Welcome!", Font_7x10, White);
 				  ssd1306_UpdateScreen();
 
-				  // Sen enciende el led:
+				  // Se enciende el led:
 				  //blinking_on_led();
 
 			  }else{
@@ -298,7 +283,6 @@ int main(void)
 				  ssd1306_UpdateScreen();
 
 				  // Se enciende el led 3 veces si la contraseña es incorrecta:
-				  //blinking_led();
 				  cont = 1;
 				  toggle = 6;
 
@@ -308,7 +292,6 @@ int main(void)
 		  }
 	  		  printf("\r\n");
 	  		  //ring_buffer_reset(usart2_rb);
-
 	  		  enter = 0;
 	  	  }
 
