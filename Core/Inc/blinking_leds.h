@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-void blinking_led(void);
+uint8_t light_on(uint8_t place);
 uint8_t blinking_led_ret(uint8_t *toggles);
 
 #endif /* INC_BLINKING_LEDS_H_ */

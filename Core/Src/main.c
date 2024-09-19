@@ -58,7 +58,7 @@ uint8_t usart2_buffer[USART2_BUFFER_SIZE];
 ring_buffer_t usart2_rb;
 uint8_t usart2_rx;
 uint8_t enter = 0;
-
+uint8_t place = 0;
 
 uint32_t left_toggles = 0;
 uint32_t left_last_press_tick = 0;
@@ -102,9 +102,20 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 				printf("ENTER: %c\r\n", key_pressed);
 				enter = 1;
 				return;
+				if(key_pressed == 'A'){
+					place == 1;
+				}
+				if(key_pressed == 'B'){
+					place == 2;
+				}
+				if(key_pressed == 'C'){
+					place == 3;
+				}
+				if(key_pressed == 'D'){
+					place == 4;
+				}
 			}else if(key_pressed == '*'){
 				ring_buffer_reset(&usart2_rb);
-				HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 				printf("RESET: enter again %c\r\n", key_pressed);
 
 				// Reseteamos el mensaje igualmente:
@@ -118,19 +129,20 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			printf("Pressed: %c\r\n", key_pressed);
 			ring_buffer_write(&usart2_rb, key_pressed);
 			return;
+
 		}
 
-	if (GPIO_Pin == BUTTON_RIGHT_Pin) {
-		HAL_UART_Transmit(&huart2, (uint8_t *)"S1\r\n", 4, 10);
-		if (HAL_GetTick() < (left_last_press_tick + 300)) { // if last press was in the last 300ms
-			left_toggles = 0xFFFFFF; // a long time toggling (infinite)
-		} else {
-			left_toggles = 6;
-		}
-		left_last_press_tick = HAL_GetTick();
-	} else if (GPIO_Pin == BUTTON_LEFT_Pin) {
-		left_toggles = 0;
-	}
+//	if (GPIO_Pin == BUTTON_RIGHT_Pin) {
+//		HAL_UART_Transmit(&huart2, (uint8_t *)"S1\r\n", 4, 10);
+//		if (HAL_GetTick() < (left_last_press_tick + 300)) { // if last press was in the last 300ms
+//			left_toggles = 0xFFFFFF; // a long time toggling (infinite)
+//		} else {
+//			left_toggles = 6;
+//		}
+//		left_last_press_tick = HAL_GetTick();
+//	} else if (GPIO_Pin == BUTTON_LEFT_Pin) {
+//		left_toggles = 0;
+//	}
 }
 
 void low_power_mode()
@@ -240,7 +252,28 @@ int main(void)
 			  if(right_password(data)){
 				  cont = 0;
 				  toggle = 0;
-				  printf("Welcome to your home!");
+				  printf("Welcome to your home!\r\n");
+				  printf("In which room do you want to be?\r\n\n");
+				  printf("Bedroom: Press A \r\n");
+				  printf("Living Room: Press B \r\n");
+				  printf("bathroom: Press C \r\n");
+				  printf("Kitchen: Press D \r\n");
+
+				  switch(place){
+
+				  case 1: HAL_GPIO_WritePin(Room_GPIO_Port, Room_Pin, GPIO_PIN_RESET);
+				  break;
+
+				  case 2: HAL_GPIO_WritePin(Living_GPIO_Port, Living_Pin, GPIO_PIN_SET);
+				  break;
+
+				  case 3: HAL_GPIO_WritePin(Bathroom_GPIO_Port, Bathroom_Pin, GPIO_PIN_SET);
+				  break;
+
+				  case 4: HAL_GPIO_WritePin(Kitchen_GPIO_Port, Kitchen_Pin, GPIO_PIN_SET);
+				  break;
+
+				  }
 
 				  // Si hay algo escrito, se borra:
 				  ssd1306_FillRectangle(37, 50, 97, 20, Black);
@@ -470,16 +503,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, Room_Pin|Living_Pin|Bathroom_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, Room_Pin|Living_Pin|Bathroom_Pin|ROW_1_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(ROW_1_GPIO_Port, ROW_1_Pin, GPIO_PIN_SET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, ROW_2_Pin|ROW_4_Pin|ROW_3_Pin, GPIO_PIN_SET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(Kitchen_GPIO_Port, Kitchen_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, ROW_2_Pin|ROW_4_Pin|ROW_3_Pin|Kitchen_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : BUTTON_LEFT_Pin BUTTON_RIGHT_Pin */
   GPIO_InitStruct.Pin = BUTTON_LEFT_Pin|BUTTON_RIGHT_Pin;

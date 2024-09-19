@@ -8,18 +8,19 @@
 #include "main.h"
 
 
-uint8_t light_on(uint8_t *place){
+uint8_t light_on(uint8_t place){
+
 	switch(place){
-	case place == 1:
+	case 1:
 		HAL_GPIO_WritePin(Room_GPIO_Port, Room_Pin, GPIO_PIN_SET);
 	break;
-	case place == 2:
+	case 2:
 		HAL_GPIO_WritePin(Living_GPIO_Port, Living_Pin, GPIO_PIN_SET);
 		break;
-	case place == 3:
+	case 3:
 		HAL_GPIO_WritePin(Bathroom_GPIO_Port, Bathroom_Pin, GPIO_PIN_SET);
 		break;
-	case place == 4:
+	case 4:
 		HAL_GPIO_WritePin(Kitchen_GPIO_Port, Kitchen_Pin, GPIO_PIN_SET);
 		break;
 	}
