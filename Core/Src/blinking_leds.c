@@ -12,18 +12,24 @@ uint8_t light_on(uint8_t place){
 
 	switch(place){
 	case 1:
+		printf("Sala");
 		HAL_GPIO_WritePin(Room_GPIO_Port, Room_Pin, GPIO_PIN_RESET);
 	break;
 	case 2:
+		printf("Sala");
 		HAL_GPIO_WritePin(Living_GPIO_Port, Living_Pin, GPIO_PIN_RESET);
 		break;
 	case 3:
+		printf("Sala");
 		HAL_GPIO_WritePin(Bathroom_GPIO_Port, Bathroom_Pin, GPIO_PIN_RESET);
 		break;
 	case 4:
+		printf("Sala");
 		HAL_GPIO_WritePin(Kitchen_GPIO_Port, Kitchen_Pin, GPIO_PIN_RESET);
 		break;
+	default: printf("No hay datos",place);
 	}
+
 }
 
 uint8_t blinking_led_ret(uint8_t *toggles){
@@ -69,19 +75,15 @@ void turn_off(uint8_t light_on){
 	switch (light_on){
 
 	case 1:
-		printf("turning off\r\n",light_on);
 		HAL_GPIO_WritePin(Room_GPIO_Port, Room_Pin, GPIO_PIN_SET);
 	break;
 	case 2:
-		printf("turning off\r\n",light_on);
 		HAL_GPIO_WritePin(Living_GPIO_Port, Living_Pin, GPIO_PIN_SET);
 		break;
 	case 3:
-		printf("turning off\r\n",light_on);
 		HAL_GPIO_WritePin(Bathroom_GPIO_Port, Bathroom_Pin, GPIO_PIN_SET);
 		break;
 	case 4:
-		printf("turning off\r\n",light_on);
 		HAL_GPIO_WritePin(Kitchen_GPIO_Port, Kitchen_Pin, GPIO_PIN_SET);
 		break;
 

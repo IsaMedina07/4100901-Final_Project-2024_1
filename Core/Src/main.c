@@ -53,7 +53,7 @@ UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 
-#define USART2_BUFFER_SIZE 8
+#define USART2_BUFFER_SIZE 4
 uint8_t usart2_buffer[USART2_BUFFER_SIZE];
 ring_buffer_t usart2_rb;
 uint8_t usart2_rx;
@@ -96,21 +96,28 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	uint8_t key_pressed = keypad_scan(GPIO_Pin);
+
 	if (key_pressed != 0xFF) {
 			// Al presionar # o * se cambia la variable enter a 1 y se sale del callback
 			if(key_pressed == '#'){
 				printf("ENTER: %c\r\n", key_pressed);
 				enter = 1;
+
 				return;
-				if(key_pressed == 'A'){
-					place = 1;
-				}else if(key_pressed == 'B'){
-					place = 2;
-				}else if(key_pressed == 'C'){
-					place = 3;
-				}else if(key_pressed == 'D'){
-					place = 4;
-				}
+					if(key_pressed == 'A'){
+						place = 1;
+					}
+					if(key_pressed == 'B'){
+						place = 2;
+					}
+					if(key_pressed == 'C'){
+						place = 3;
+					}
+					if(key_pressed == 'D'){
+						place = 4;
+					}
+
+
 
 			}else if(key_pressed == '*'){
 				ring_buffer_reset(&usart2_rb);
@@ -128,7 +135,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			ring_buffer_write(&usart2_rb, key_pressed);
 			return;
 
-		}
+	}
 
 //	if (GPIO_Pin == BUTTON_RIGHT_Pin) {
 //		HAL_UART_Transmit(&huart2, (uint8_t *)"S1\r\n", 4, 10);
@@ -253,8 +260,13 @@ int main(void)
 				  toggle = 0;
 				  //nstrucciones
 				  messages();
+
+				  printf(place);
+
 				  //enciende el led correspondiente
-				  light_on(place);
+
+					  light_on(place);
+
 
 				  //apaga la luz de la habitación correspondiente dependiendo del tiempo
 				  turn_off(place);
@@ -293,6 +305,7 @@ int main(void)
 	  		  printf("\r\n");
 	  		  //ring_buffer_reset(usart2_rb);
 	  		  enter = 0;
+	  		  place = 0;
 	  	  }
 
 	  if(cont != 0){
