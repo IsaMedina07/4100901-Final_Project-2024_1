@@ -7,31 +7,41 @@
 #include "blinking_leds.h"
 #include "main.h"
 
+//variables para el control de las luces de cada habitación
 
-uint8_t light_on(uint8_t place){
+uint32_t Bedroom_on = 0;
+uint32_t Living_on = 0;
+uint32_t Bathroom_on = 0;
+uint32_t Kitchen_on = 0;
+
+//función para el encendido de las luces según la habitación que corresponda
+void light_on(uint8_t place){
 
 	switch(place){
 	case 1:
-		printf("Sala");
+		Bedroom_on = HAL_GetTick();
+		printf("Bedroom\r\n");
 		HAL_GPIO_WritePin(Room_GPIO_Port, Room_Pin, GPIO_PIN_RESET);
 	break;
 	case 2:
-		printf("Sala");
+		Living_on = HAL_GetTick();
+		printf("Livingroom\r\n");
 		HAL_GPIO_WritePin(Living_GPIO_Port, Living_Pin, GPIO_PIN_RESET);
 		break;
 	case 3:
-		printf("Sala");
+		Bathroom_on = HAL_GetTick();
+		printf("Bathroom\r\n");
 		HAL_GPIO_WritePin(Bathroom_GPIO_Port, Bathroom_Pin, GPIO_PIN_RESET);
 		break;
 	case 4:
-		printf("Sala");
+		Kitchen_on = HAL_GetTick();
+		printf("Kitchen\r\n");
 		HAL_GPIO_WritePin(Kitchen_GPIO_Port, Kitchen_Pin, GPIO_PIN_RESET);
 		break;
-	default: printf("No hay datos",place);
 	}
-
 }
 
+//función para el parpadeo de todos los leds en caso de que la clave sea incorrecta
 uint8_t blinking_led_ret(uint8_t *toggles){
 
 	static uint32_t tick = 0;
@@ -54,6 +64,7 @@ uint8_t blinking_led_ret(uint8_t *toggles){
 	return 1;
 }
 
+//mensajes de bienvenida
 void messages(void){
 	printf("Welcome to your home!\r\n");
 	printf("In which room do you want to be?\r\n");
@@ -63,34 +74,21 @@ void messages(void){
 	printf("Kitchen: Press D \r\n");
 }
 
-void turn_off(uint8_t light_on){
+//función para apagar las luces después de un tiempo determinado
+void turn_off(void){
 
-#define LIGHTS (30 * 1000) // 30 segundos
-	static uint32_t time_on = LIGHTS;
-
-	if (time_on> HAL_GetTick()) {
-		return;
-	}
-
-	switch (light_on){
-
-	case 1:
+	if(HAL_GetTick() > Bedroom_on + WAITING_TIME){
 		HAL_GPIO_WritePin(Room_GPIO_Port, Room_Pin, GPIO_PIN_SET);
-	break;
-	case 2:
-		HAL_GPIO_WritePin(Living_GPIO_Port, Living_Pin, GPIO_PIN_SET);
-		break;
-	case 3:
-		HAL_GPIO_WritePin(Bathroom_GPIO_Port, Bathroom_Pin, GPIO_PIN_SET);
-		break;
-	case 4:
-		HAL_GPIO_WritePin(Kitchen_GPIO_Port, Kitchen_Pin, GPIO_PIN_SET);
-		break;
-
 	}
-	time_on = HAL_GetTick() + LIGHTS;
-
-
+	if(HAL_GetTick() > Living_on + WAITING_TIME){
+			HAL_GPIO_WritePin(Living_GPIO_Port, Living_Pin, GPIO_PIN_SET);
+		}
+	if(HAL_GetTick() > Bathroom_on + WAITING_TIME){
+			HAL_GPIO_WritePin(Bathroom_GPIO_Port, Bathroom_Pin, GPIO_PIN_SET);
+		}
+	if(HAL_GetTick() > Kitchen_on + WAITING_TIME){
+			HAL_GPIO_WritePin(Kitchen_GPIO_Port, Kitchen_Pin, GPIO_PIN_SET);
+		}
 }
 
 

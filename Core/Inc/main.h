@@ -36,7 +36,13 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+typedef enum{
+	NOTHING,
+	LUZ_A,
+	LUZ_B,
+	LUZ_C,
+	LUZ_D
+}flag_lights;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

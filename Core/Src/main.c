@@ -53,12 +53,16 @@ UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 
+//variables necesarias  para el buffer
 #define USART2_BUFFER_SIZE 4
 uint8_t usart2_buffer[USART2_BUFFER_SIZE];
 ring_buffer_t usart2_rb;
 uint8_t usart2_rx;
+
+//variables de control de las luces
 uint8_t enter = 0;
-uint8_t place = 0;
+flag_lights place = NOTHING;
+uint8_t key_control = 0;
 
 uint32_t left_toggles = 0;
 uint32_t left_last_press_tick = 0;
@@ -98,27 +102,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	uint8_t key_pressed = keypad_scan(GPIO_Pin);
 
 	if (key_pressed != 0xFF) {
-			// Al presionar # o * se cambia la variable enter a 1 y se sale del callback
+			//la tecla # funciona commo enter
 			if(key_pressed == '#'){
 				printf("ENTER: %c\r\n", key_pressed);
 				enter = 1;
-
-				return;
-					if(key_pressed == 'A'){
-						place = 1;
-					}
-					if(key_pressed == 'B'){
-						place = 2;
-					}
-					if(key_pressed == 'C'){
-						place = 3;
-					}
-					if(key_pressed == 'D'){
-						place = 4;
-					}
-
-
-
+			return;
+				//la tecla * funciona como reset
 			}else if(key_pressed == '*'){
 				ring_buffer_reset(&usart2_rb);
 				printf("RESET: enter again %c\r\n", key_pressed);
@@ -131,6 +120,23 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 				return;
 			}
 
+			//lógica para la pulsación de alguna de las letras correspondientes a las habitaciones
+			if(key_pressed == 'A'){
+				place = LUZ_A;
+				key_control = 1;
+			}
+			if(key_pressed == 'B'){
+				place = LUZ_B;
+				key_control = 1;
+			}
+			if(key_pressed == 'C'){
+				place = LUZ_C;
+				key_control = 1;
+			}
+			if(key_pressed == 'D'){
+				place = LUZ_D;
+				key_control = 1;
+			}
 			printf("Pressed: %c\r\n", key_pressed);
 			ring_buffer_write(&usart2_rb, key_pressed);
 			return;
@@ -230,24 +236,16 @@ int main(void)
   ATOMIC_SET_BIT(USART2->CR1, USART_CR1_RXNEIE); // usando un funcion mas liviana para reducir memoria
 
   //variables de control
-  uint8_t cont = 0;
-  uint8_t toggle = 0;
+  uint8_t cont = 0; //contador para el parpadeo de los leds
+  uint8_t toggle = 0; //toggles necesarios para el parpadeo de los leds
+  uint8_t lights_correct_password = 0;//bandera que indica que la contraseña es correcta y se pueden encender las luces
 
   while (1) {
-//	  if (ring_buffer_is_full(&usart2_rb) != 0) {
-//		  printf("Received:\r\n");
-//		  while (ring_buffer_is_empty(&usart2_rb) == 0) {
-//			  uint8_t data;
-//			  ring_buffer_read(&usart2_rb, &data);
-//			  HAL_UART_Transmit(&huart2, &data, 1, 10);
-//		  }
-//		  printf("\r\n");
-//	  }
 
-  if (enter == 1) {
+	 if (enter == 1) { //verifica si se hizo enter para verificar la clave ingresada
 		  printf("Received:\r\n");
 		  while (ring_buffer_is_empty(&usart2_rb) == 0) {
-			  uint8_t data[4];
+			  uint8_t data[4]; //se almacenan los datos de la clave recibida
 			  uint8_t read;
 
 			  for (uint8_t i = 0; i <= 4; i++){
@@ -255,22 +253,12 @@ int main(void)
 				  data[i] = read;
 			  };
 
-			  if(right_password(data)){
+			  if(right_password(data)){ //se verifica si se ingresó la clave correcta
 				  cont = 0;
 				  toggle = 0;
+				  lights_correct_password = 1;
 				  //nstrucciones
 				  messages();
-
-				  printf(place);
-
-				  //enciende el led correspondiente
-
-					  light_on(place);
-
-
-				  //apaga la luz de la habitación correspondiente dependiendo del tiempo
-				  turn_off(place);
-
 
 				  // Si hay algo escrito, se borra:
 				  ssd1306_FillRectangle(37, 50, 97, 20, Black);
@@ -279,12 +267,10 @@ int main(void)
 
 				  // Se escribe el mensaje
 				  ssd1306_WriteString("Welcome!", Font_7x10, White);
-				  ssd1306_UpdateScreen();
+				  ssd1306_UpdateScreen():
 
-				  // Se enciende el led:
-				  //blinking_on_led();
 
-			  }else{
+			  }else{ //si la clave es incorrecta
 				  printf("Alerta!");
 
 				  ssd1306_FillRectangle(37, 50, 97, 20, Black);
@@ -297,13 +283,9 @@ int main(void)
 				  // Se enciende el led 3 veces si la contraseña es incorrecta:
 				  cont = 1;
 				  toggle = 6;
-
-				  // Si el led está encendido, se apaga completamente
-				 // HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 			  }
 		  }
 	  		  printf("\r\n");
-	  		  //ring_buffer_reset(usart2_rb);
 	  		  enter = 0;
 	  		  place = 0;
 	  	  }
@@ -311,8 +293,16 @@ int main(void)
 	  if(cont != 0){
 		  cont = blinking_led_ret(&toggle);
 		  }else{
-		  low_power_mode();
+		 // low_power_mode();
 		  }
+
+	  //si la clave es correcta y la bandera de control de las teclas está activada, se enciende la luz correspondiente
+	  if(lights_correct_password == 1 && key_control == 1){
+	  		light_on(place);
+	  		key_control = 0;
+	  }
+	  //las luces se apagan después de un tiempo determinado
+	  turn_off();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
