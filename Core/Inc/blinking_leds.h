@@ -15,6 +15,7 @@ void light_on(uint8_t place);
 uint8_t blinking_led_ret(uint8_t *toggles);
 void messages(void);
 //void turn_off(uint8_t light_on);
-void turn_off(void);
-
+void turn_off_with_time(uint8_t place);
+void turn_off(uint8_t turn_off_light);
+uint8_t party_lights(void);
 #endif /* INC_BLINKING_LEDS_H_ */

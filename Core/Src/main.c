@@ -64,8 +64,15 @@ uint8_t enter = 0;
 flag_lights place = NOTHING;
 uint8_t key_control = 0;
 
-uint32_t left_toggles = 0;
-uint32_t left_last_press_tick = 0;
+uint32_t one_last_press_tick = 0;
+uint32_t A_last_press_tick = 0;
+uint32_t B_last_press_tick = 0;
+uint32_t C_last_press_tick = 0;
+uint32_t D_last_press_tick = 0;
+uint8_t party_mode = 0;
+uint8_t off_everything = 0;
+uint8_t turn_off_light = 0;
+uint8_t off_control = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -117,43 +124,66 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 				ssd1306_SetCursor(45, 30);
 				ssd1306_WriteString("Hello!", Font_7x10, White);
 				ssd1306_UpdateScreen();
+				off_everything = 1;
 				return;
 			}
 
-			//lógica para la pulsación de alguna de las letras correspondientes a las habitaciones
+			//lógica para la pulsación de alguna de las letras correspondientes a las habitaciones o modo fiesta
+			if (key_pressed == '1') {
+				if (HAL_GetTick() < (one_last_press_tick + 500)) { // si la última pulsación fue antes de los 500ms
+					party_mode = 1;// se activa la bandera para el modo fiesta
+				}
+				 one_last_press_tick = HAL_GetTick();
+			}
 			if(key_pressed == 'A'){
-				place = LUZ_A;
-				key_control = 1;
+				if (HAL_GetTick() < (A_last_press_tick + 500)) { // si la última pulsación fue antes de los 500ms
+					turn_off_light = LUZ_A;
+					off_control = 1;
+				}else{
+					place = LUZ_A;
+					key_control = 1;
+				}
+				A_last_press_tick = HAL_GetTick();
 			}
+
 			if(key_pressed == 'B'){
-				place = LUZ_B;
-				key_control = 1;
+				if (HAL_GetTick() < (B_last_press_tick + 500)) { // si la última pulsación fue antes de los 500ms
+					turn_off_light = LUZ_B;
+					off_control = 1;
+				}else{
+					place = LUZ_B;
+					key_control = 1;
+				}
+				B_last_press_tick = HAL_GetTick();
 			}
+
 			if(key_pressed == 'C'){
-				place = LUZ_C;
-				key_control = 1;
+				if (HAL_GetTick() < (C_last_press_tick + 500)) { // si la última pulsación fue antes de los 500ms
+					turn_off_light = LUZ_C;
+					off_control = 1;
+				}else{
+					place = LUZ_C;
+					key_control = 1;
+				}
+				C_last_press_tick = HAL_GetTick();
 			}
+
 			if(key_pressed == 'D'){
-				place = LUZ_D;
-				key_control = 1;
+				if (HAL_GetTick() < (D_last_press_tick + 500)) { // si la última pulsación fue antes de los 500ms
+					turn_off_light = LUZ_D;
+					off_control = 1;
+				}else{
+					place = LUZ_D;
+					key_control = 1;
+				}
+				D_last_press_tick = HAL_GetTick();
 			}
+
 			printf("Pressed: %c\r\n", key_pressed);
 			ring_buffer_write(&usart2_rb, key_pressed);
 			return;
-
 	}
 
-//	if (GPIO_Pin == BUTTON_RIGHT_Pin) {
-//		HAL_UART_Transmit(&huart2, (uint8_t *)"S1\r\n", 4, 10);
-//		if (HAL_GetTick() < (left_last_press_tick + 300)) { // if last press was in the last 300ms
-//			left_toggles = 0xFFFFFF; // a long time toggling (infinite)
-//		} else {
-//			left_toggles = 6;
-//		}
-//		left_last_press_tick = HAL_GetTick();
-//	} else if (GPIO_Pin == BUTTON_LEFT_Pin) {
-//		left_toggles = 0;
-//	}
 }
 
 void low_power_mode()
@@ -267,8 +297,7 @@ int main(void)
 
 				  // Se escribe el mensaje
 				  ssd1306_WriteString("Welcome!", Font_7x10, White);
-				  ssd1306_UpdateScreen():
-
+				  ssd1306_UpdateScreen();
 
 			  }else{ //si la clave es incorrecta
 				  printf("Alerta!");
@@ -290,7 +319,7 @@ int main(void)
 	  		  place = 0;
 	  	  }
 
-	  if(cont != 0){
+	  if(cont == 1){
 		  cont = blinking_led_ret(&toggle);
 		  }else{
 		 // low_power_mode();
@@ -300,9 +329,35 @@ int main(void)
 	  if(lights_correct_password == 1 && key_control == 1){
 	  		light_on(place);
 	  		key_control = 0;
+	  }else if (lights_correct_password == 1 && party_mode == 0){
+		  turn_off_with_time(place);
 	  }
-	  //las luces se apagan después de un tiempo determinado
-	  turn_off();
+
+	  //lógica para la activación del  modo fiesta
+	  if(lights_correct_password == 1 && party_mode == 1){
+		  party_lights();
+		  printf("Party mode activated");
+		  ssd1306_FillRectangle(37, 50, 97, 20, Black);
+		  ssd1306_SetCursor(40, 30);
+		  ssd1306_UpdateScreen();
+
+		  // Se escribe el mensaje
+		  ssd1306_WriteString("Party!", Font_7x10, White);
+		  ssd1306_UpdateScreen();
+		  party_mode = 0;
+	  }
+	  if(off_control == 1){
+		  turn_off(turn_off_light);
+	  }
+	 // las luces se apagan después de un tiempo determinado
+	 // turn_off();
+	  //todas las luces se apagan al dar reset * y el sistema se suspende
+	  if(off_everything == 1 && lights_correct_password == 1){
+		  turn_off_completely();
+		  off_everything = 0;
+		  low_power_mode();
+	  }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

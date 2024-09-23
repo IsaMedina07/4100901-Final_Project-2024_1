@@ -47,11 +47,12 @@ uint8_t blinking_led_ret(uint8_t *toggles){
 	static uint32_t tick = 0;
 	if (tick < HAL_GetTick()) {
 		if (*toggles > 0) {
-			tick = HAL_GetTick() + 400;
+			tick = HAL_GetTick() + 500;
 			HAL_GPIO_TogglePin(Room_GPIO_Port, Room_Pin);
 			HAL_GPIO_TogglePin(Living_GPIO_Port, Living_Pin);
 			HAL_GPIO_TogglePin(Bathroom_GPIO_Port, Bathroom_Pin);
 			HAL_GPIO_TogglePin(Kitchen_GPIO_Port, Kitchen_Pin);
+
 			(*toggles)--;
 		} else {
 			HAL_GPIO_WritePin(Room_GPIO_Port, Room_Pin, GPIO_PIN_SET);
@@ -67,28 +68,83 @@ uint8_t blinking_led_ret(uint8_t *toggles){
 //mensajes de bienvenida
 void messages(void){
 	printf("Welcome to your home!\r\n");
-	printf("In which room do you want to be?\r\n");
+	printf("--In which room do you want to be?--\r\n");
 	printf("Bedroom: Press A \r\n");
 	printf("Living Room: Press B \r\n");
 	printf("bathroom: Press C \r\n");
 	printf("Kitchen: Press D \r\n");
 }
 
-//función para apagar las luces después de un tiempo determinado
-void turn_off(void){
+//función para que las luces funcionen en modo fiesta
+uint8_t party_lights(void){
+	HAL_Delay(500);
+	HAL_GPIO_WritePin(Room_GPIO_Port, Room_Pin, GPIO_PIN_RESET);
+	HAL_Delay(500);
+	HAL_GPIO_WritePin(Living_GPIO_Port, Living_Pin, GPIO_PIN_RESET);
+	HAL_Delay(500);
+	HAL_GPIO_WritePin(Bathroom_GPIO_Port, Bathroom_Pin, GPIO_PIN_RESET);
+	HAL_Delay(500);
+	HAL_GPIO_WritePin(Kitchen_GPIO_Port, Kitchen_Pin, GPIO_PIN_RESET);
+	HAL_Delay(500);
+	return 1;
+}
 
-	if(HAL_GetTick() > Bedroom_on + WAITING_TIME){
+//función para apagar las luces después de un tiempo determinado
+void turn_off_with_time(uint8_t place){
+
+	switch (place){
+	case 1: if(HAL_GetTick() > Bedroom_on + WAITING_TIME){
 		HAL_GPIO_WritePin(Room_GPIO_Port, Room_Pin, GPIO_PIN_SET);
 	}
-	if(HAL_GetTick() > Living_on + WAITING_TIME){
+	break;
+
+	case 2:
+		if(HAL_GetTick() > Living_on + WAITING_TIME){
 			HAL_GPIO_WritePin(Living_GPIO_Port, Living_Pin, GPIO_PIN_SET);
 		}
-	if(HAL_GetTick() > Bathroom_on + WAITING_TIME){
+	break;
+
+	case 3:
+		if(HAL_GetTick() > Bathroom_on + WAITING_TIME){
 			HAL_GPIO_WritePin(Bathroom_GPIO_Port, Bathroom_Pin, GPIO_PIN_SET);
 		}
+	break;
+	case 4:
 	if(HAL_GetTick() > Kitchen_on + WAITING_TIME){
 			HAL_GPIO_WritePin(Kitchen_GPIO_Port, Kitchen_Pin, GPIO_PIN_SET);
 		}
+	break;
+	}
+}
+
+
+void turn_off(uint8_t turn_off_light){
+
+	switch (turn_off_light){
+	case 1:
+		HAL_GPIO_WritePin(Room_GPIO_Port, Room_Pin, GPIO_PIN_SET);
+	break;
+
+	case 2:
+			HAL_GPIO_WritePin(Living_GPIO_Port, Living_Pin, GPIO_PIN_SET);
+	break;
+
+	case 3:
+			HAL_GPIO_WritePin(Bathroom_GPIO_Port, Bathroom_Pin, GPIO_PIN_SET);
+	break;
+	case 4:
+			HAL_GPIO_WritePin(Kitchen_GPIO_Port, Kitchen_Pin, GPIO_PIN_SET);
+	break;
+	}
+}
+
+//función para apagar todas las luces
+void turn_off_completely(void){
+	HAL_GPIO_WritePin(Kitchen_GPIO_Port, Kitchen_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(Bathroom_GPIO_Port, Bathroom_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(Room_GPIO_Port, Room_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(Living_GPIO_Port, Living_Pin, GPIO_PIN_SET);
+
 }
 
 
