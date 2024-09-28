@@ -59,7 +59,7 @@ uint8_t usart2_buffer[USART2_BUFFER_SIZE];
 ring_buffer_t usart2_rb;
 uint8_t usart2_rx;
 
-//variables de control de las luces
+//variables de control de los leds
 uint8_t enter = 0;
 flag_lights place = NOTHING;
 uint8_t key_control = 0;
@@ -128,13 +128,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 				return;
 			}
 
-			//lógica para la pulsación de alguna de las letras correspondientes a las habitaciones o modo fiesta
-			if (key_pressed == '1') {
-				if (HAL_GetTick() < (one_last_press_tick + 500)) { // si la última pulsación fue antes de los 500ms
-					party_mode = 1;// se activa la bandera para el modo fiesta
-				}
-				 one_last_press_tick = HAL_GetTick();
-			}
+			//lógica para encendido y apagado de los leds
 			if(key_pressed == 'A'){
 				if (HAL_GetTick() < (A_last_press_tick + 500)) { // si la última pulsación fue antes de los 500ms
 					turn_off_light = LUZ_A;
@@ -147,7 +141,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			}
 
 			if(key_pressed == 'B'){
-				if (HAL_GetTick() < (B_last_press_tick + 500)) { // si la última pulsación fue antes de los 500ms
+				if (HAL_GetTick() < (B_last_press_tick + 500)) {
 					turn_off_light = LUZ_B;
 					off_control = 1;
 				}else{
@@ -158,7 +152,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			}
 
 			if(key_pressed == 'C'){
-				if (HAL_GetTick() < (C_last_press_tick + 500)) { // si la última pulsación fue antes de los 500ms
+				if (HAL_GetTick() < (C_last_press_tick + 500)) {
 					turn_off_light = LUZ_C;
 					off_control = 1;
 				}else{
@@ -169,7 +163,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			}
 
 			if(key_pressed == 'D'){
-				if (HAL_GetTick() < (D_last_press_tick + 500)) { // si la última pulsación fue antes de los 500ms
+				if (HAL_GetTick() < (D_last_press_tick + 500)) {
 					turn_off_light = LUZ_D;
 					off_control = 1;
 				}else{
@@ -186,6 +180,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 }
 
+//funcion para el ahorro de energía
 void low_power_mode()
 {
 #define AWAKE_TIME (10 * 1000) // 10 segundos
@@ -272,7 +267,7 @@ int main(void)
 
   while (1) {
 
-	 if (enter == 1) { //verifica si se hizo enter para verificar la clave ingresada
+	 if (enter == 1) { //revisa si se hizo enter para verificar la clave ingresada
 		  printf("Received:\r\n");
 		  while (ring_buffer_is_empty(&usart2_rb) == 0) {
 			  uint8_t data[4]; //se almacenan los datos de la clave recibida
@@ -280,14 +275,14 @@ int main(void)
 
 			  for (uint8_t i = 0; i <= 4; i++){
 				  ring_buffer_read(&usart2_rb, &read);
-				  data[i] = read;
+				  data[i] = read; //se leen los datos
 			  };
 
 			  if(right_password(data)){ //se verifica si se ingresó la clave correcta
 				  cont = 0;
 				  toggle = 0;
 				  lights_correct_password = 1;
-				  //nstrucciones
+				  //menú de instrucciones
 				  messages();
 
 				  // Si hay algo escrito, se borra:
@@ -300,7 +295,7 @@ int main(void)
 				  ssd1306_UpdateScreen();
 
 			  }else{ //si la clave es incorrecta
-				  printf("Alerta!");
+				  printf("Alerta!\r\n");
 
 				  ssd1306_FillRectangle(37, 50, 97, 20, Black);
 				  ssd1306_SetCursor(45, 30);
@@ -321,36 +316,61 @@ int main(void)
 
 	  if(cont == 1){
 		  cont = blinking_led_ret(&toggle);
-		  }else{
-		 // low_power_mode();
 		  }
 
 	  //si la clave es correcta y la bandera de control de las teclas está activada, se enciende la luz correspondiente
 	  if(lights_correct_password == 1 && key_control == 1){
-	  		light_on(place);
+	  		uint8_t message_on = light_on(place);
 	  		key_control = 0;
-	  }else if (lights_correct_password == 1 && party_mode == 0){
-		  turn_off_with_time(place);
-	  }
 
-	  //lógica para la activación del  modo fiesta
-	  if(lights_correct_password == 1 && party_mode == 1){
-		  party_lights();
-		  printf("Party mode activated");
-		  ssd1306_FillRectangle(37, 50, 97, 20, Black);
-		  ssd1306_SetCursor(40, 30);
-		  ssd1306_UpdateScreen();
+	  		switch(message_on){
+				case 1:
+					ssd1306_FillRectangle(37, 50, 97, 20, Black);
+				  ssd1306_SetCursor(45, 30);
+				  ssd1306_UpdateScreen();
 
-		  // Se escribe el mensaje
-		  ssd1306_WriteString("Party!", Font_7x10, White);
-		  ssd1306_UpdateScreen();
-		  party_mode = 0;
+				  ssd1306_WriteString("Bedroom on", Font_7x10, White);
+				  ssd1306_UpdateScreen();
+				 break;
+
+				case 2:
+				 ssd1306_FillRectangle(37, 50, 97, 20, Black);
+				  ssd1306_SetCursor(45, 30);
+				  ssd1306_UpdateScreen();
+
+				  ssd1306_WriteString("Living on", Font_7x10, White);
+				  ssd1306_UpdateScreen();
+				break;
+
+				case 3:
+				 ssd1306_FillRectangle(37, 50, 97, 20, Black);
+				  ssd1306_SetCursor(45, 30);
+				  ssd1306_UpdateScreen();
+
+				  ssd1306_WriteString("Bathroom on", Font_7x10, White);
+				  ssd1306_UpdateScreen();
+				break;
+
+				case 4:
+				 ssd1306_FillRectangle(37, 50, 97, 20, Black);
+				  ssd1306_SetCursor(45, 30);
+				  ssd1306_UpdateScreen();
+
+				  ssd1306_WriteString("Kitchen on", Font_7x10, White);
+				  ssd1306_UpdateScreen();
+				  break;
+	  			}
 	  }
+	  //se apaga la luz activada después de 5 segundos
+		  turn_off_with_time();
+
+
+	  //apagar la luz correspndiente
 	  if(off_control == 1){
 		  turn_off(turn_off_light);
+		  off_control = 0;
 	  }
-	 // las luces se apagan después de un tiempo determinado
-	 // turn_off();
+
 	  //todas las luces se apagan al dar reset * y el sistema se suspende
 	  if(off_everything == 1 && lights_correct_password == 1){
 		  turn_off_completely();
