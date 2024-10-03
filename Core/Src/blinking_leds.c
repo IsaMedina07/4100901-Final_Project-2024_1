@@ -20,7 +20,7 @@ uint32_t Kitchen_on = 0xFFFF0000;
 
 
 //función para el encendido de las luces según la habitación que corresponda
-uint8_t light_on(uint8_t place){
+uint8_t light_on(uint8_t place, UART_HandleTypeDef *huart){
 
 	uint8_t place_on = 0;
 
@@ -29,24 +29,28 @@ uint8_t light_on(uint8_t place){
 		Bedroom_on = HAL_GetTick();
 		printf("Bedroom\r\n");
 		HAL_GPIO_WritePin(Room_GPIO_Port, Room_Pin, GPIO_PIN_RESET);
+		HAL_UART_Transmit(huart, "bedroom:1", 9, 10);
 		place_on = 1;
 	break;
 	case 2:
 		Living_on = HAL_GetTick();
 		printf("Livingroom\r\n");
 		HAL_GPIO_WritePin(Living_GPIO_Port, Living_Pin, GPIO_PIN_RESET);
+		HAL_UART_Transmit(huart, "living:1", 8, 10);
 		place_on = 2;
 		break;
 	case 3:
 		Bathroom_on = HAL_GetTick();
 		printf("Bathroom\r\n");
 		HAL_GPIO_WritePin(Bathroom_GPIO_Port, Bathroom_Pin, GPIO_PIN_RESET);
+		HAL_UART_Transmit(huart, "bathroom:1", 10, 10);
 		place_on = 3;
 		break;
 	case 4:
 		Kitchen_on = HAL_GetTick();
 		printf("Kitchen\r\n");
 		HAL_GPIO_WritePin(Kitchen_GPIO_Port, Kitchen_Pin, GPIO_PIN_RESET);
+		HAL_UART_Transmit(huart, "kitchen:1", 9, 10);
 		place_on = 4;
 		break;
 	}
@@ -115,21 +119,25 @@ void turn_off_with_time(void){
 }
 
 //función para apagar todos los leds
-void turn_off(uint8_t turn_off_light){
+void turn_off(uint8_t turn_off_light, UART_HandleTypeDef *huart){
 
 	switch (turn_off_light){
 	case 1:
+		HAL_UART_Transmit(huart, "bedroom:0", 9, 10);
 		HAL_GPIO_WritePin(Room_GPIO_Port, Room_Pin, GPIO_PIN_SET);
 	break;
 
 	case 2:
+			HAL_UART_Transmit(huart, "living:0", 8, 10);
 			HAL_GPIO_WritePin(Living_GPIO_Port, Living_Pin, GPIO_PIN_SET);
 	break;
 
 	case 3:
+			HAL_UART_Transmit(huart, "bathroom:0", 10, 10);
 			HAL_GPIO_WritePin(Bathroom_GPIO_Port, Bathroom_Pin, GPIO_PIN_SET);
 	break;
 	case 4:
+			HAL_UART_Transmit(huart, "kitchen:0", 9, 10);
 			HAL_GPIO_WritePin(Kitchen_GPIO_Port, Kitchen_Pin, GPIO_PIN_SET);
 	break;
 	}

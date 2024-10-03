@@ -59,6 +59,12 @@ uint8_t usart2_buffer[USART2_BUFFER_SIZE];
 ring_buffer_t usart2_rb;
 uint8_t usart2_rx;
 
+//variables necesarias  para el buffer
+#define USART3_BUFFER_SIZE 20
+uint8_t usart3_buffer[USART3_BUFFER_SIZE];
+ring_buffer_t usart3_rb;
+uint8_t usart3_rx;
+
 //variables de control de los leds
 uint8_t enter = 0;
 flag_lights place = NOTHING;
@@ -102,6 +108,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	  //HAL_UART_Receive_IT(&huart2, &usart2_rx, 1); // enable interrupt to continue receiving
 	  ATOMIC_SET_BIT(USART2->CR1, USART_CR1_RXNEIE); // usando un funcion mas liviana para reducir memoria
   }
+
+  /* Data received in USART3 */
+    if (huart->Instance == USART3) {
+  	  usart3_rx = USART3->RDR;
+  	  ring_buffer_write(&usart3_rb, usart3_rx);
+  	  ATOMIC_SET_BIT(USART3->CR1, USART_CR1_RXNEIE);
+    }
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
@@ -250,8 +263,12 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   ssd1306_Init();
+  ssd1306_FillRectangle(37, 50, 97, 20, Black);
+  ssd1306_SetCursor(40, 30);
+  ssd1306_WriteString("Welcome!", Font_7x10, White);
+  ssd1306_UpdateScreen();
 
-  ring_buffer_init(&usart2_rb, usart2_buffer, USART2_BUFFER_SIZE);
+ring_buffer_init(&usart2_rb, usart2_buffer, USART2_BUFFER_SIZE);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -319,21 +336,28 @@ int main(void)
 		  }
 
 	  //si la clave es correcta y la bandera de control de las teclas está activada, se enciende la luz correspondiente
-	  if(lights_correct_password == 1 && key_control == 1){
-	  		uint8_t message_on = light_on(place);
+	  if(lights_correct_password == 1 && key_control == 1 && off_control==0){
+	  		uint8_t message_on = light_on(place, &huart3);
+
 	  		key_control = 0;
 
 	  		switch(message_on){
 				case 1:
-					ssd1306_FillRectangle(37, 50, 97, 20, Black);
+				  //HAL_UART_Transmit(&huart3, "bedroom:1", 11, 10);
+
+				  ssd1306_FillRectangle(37, 50, 97, 20, Black);
 				  ssd1306_SetCursor(45, 30);
 				  ssd1306_UpdateScreen();
 
 				  ssd1306_WriteString("Bedroom on", Font_7x10, White);
 				  ssd1306_UpdateScreen();
+
+				  //HAL_UART_Transmit(&huart3, "bedroom:1", 9, 10);
 				 break;
 
 				case 2:
+					//HAL_UART_Transmit(&huart3, "living:1", 11, 10);
+
 				 ssd1306_FillRectangle(37, 50, 97, 20, Black);
 				  ssd1306_SetCursor(45, 30);
 				  ssd1306_UpdateScreen();
@@ -343,6 +367,8 @@ int main(void)
 				break;
 
 				case 3:
+					//HAL_UART_Transmit(&huart3, "bathroom:1", 11, 10);
+
 				 ssd1306_FillRectangle(37, 50, 97, 20, Black);
 				  ssd1306_SetCursor(45, 30);
 				  ssd1306_UpdateScreen();
@@ -352,6 +378,8 @@ int main(void)
 				break;
 
 				case 4:
+					//HAL_UART_Transmit(&huart3, "kitchen:1", 11, 10);
+
 				 ssd1306_FillRectangle(37, 50, 97, 20, Black);
 				  ssd1306_SetCursor(45, 30);
 				  ssd1306_UpdateScreen();
@@ -362,12 +390,12 @@ int main(void)
 	  			}
 	  }
 	  //se apaga la luz activada después de 5 segundos
-		  turn_off_with_time();
+		  //turn_off_with_time();
 
 
 	  //apagar la luz correspndiente
 	  if(off_control == 1){
-		  turn_off(turn_off_light);
+		  turn_off(turn_off_light, &huart3);
 		  off_control = 0;
 	  }
 
