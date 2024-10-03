@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <string.h>
 
 #include "ssd1306.h"
 #include "ssd1306_fonts.h"
@@ -119,6 +120,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
+
 	uint8_t key_pressed = keypad_scan(GPIO_Pin);
 
 	if (key_pressed != 0xFF) {
@@ -126,6 +128,43 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			if(key_pressed == '#'){
 				printf("ENTER: %c\r\n", key_pressed);
 				enter = 1;
+
+
+
+				uint8_t size = ring_buffer_size(&usart3_rb);
+							uint8_t room[size]; //se almacenan los datos
+							uint8_t lee;
+
+							uint8_t len_room = 0;
+
+							uint8_t status[size-len_room];
+
+
+							for (uint8_t i = 0; i <= size; i++){
+								ring_buffer_read(&usart3_rb, &lee);
+
+								if(lee == ':'){
+									room[i] = 0;
+									len_room = i;
+									break;
+								}
+
+								room[i] = lee;
+							};
+
+							for (uint8_t i = 0; i <= size-len_room; i++){
+								ring_buffer_read(&usart3_rb, &lee);
+
+								status[i] = lee;
+							}
+
+							status[size-len_room-1] = 0;
+
+							printf("DATA: %s\r\n", room);
+							printf("STATUS: %s\r\n", status);
+
+
+
 			return;
 				//la tecla * funciona como reset
 			}else if(key_pressed == '*'){
@@ -146,6 +185,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 				if (HAL_GetTick() < (A_last_press_tick + 500)) { // si la última pulsación fue antes de los 500ms
 					turn_off_light = LUZ_A;
 					off_control = 1;
+
 				}else{
 					place = LUZ_A;
 					key_control = 1;
@@ -188,6 +228,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 			printf("Pressed: %c\r\n", key_pressed);
 			ring_buffer_write(&usart2_rb, key_pressed);
+
 			return;
 	}
 
@@ -269,6 +310,7 @@ int main(void)
   ssd1306_UpdateScreen();
 
 ring_buffer_init(&usart2_rb, usart2_buffer, USART2_BUFFER_SIZE);
+ring_buffer_init(&usart3_rb, usart3_buffer, USART3_BUFFER_SIZE);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -276,6 +318,7 @@ ring_buffer_init(&usart2_rb, usart2_buffer, USART2_BUFFER_SIZE);
   printf("Starting...\r\n");
   //HAL_UART_Receive_IT(&huart2, &usart2_rx, 1); // enable interrupt for USART2 Rx
   ATOMIC_SET_BIT(USART2->CR1, USART_CR1_RXNEIE); // usando un funcion mas liviana para reducir memoria
+  ATOMIC_SET_BIT(USART3->CR1, USART_CR1_RXNEIE);
 
   //variables de control
   uint8_t cont = 0; //contador para el parpadeo de los leds
@@ -337,6 +380,7 @@ ring_buffer_init(&usart2_rb, usart2_buffer, USART2_BUFFER_SIZE);
 
 	  //si la clave es correcta y la bandera de control de las teclas está activada, se enciende la luz correspondiente
 	  if(lights_correct_password == 1 && key_control == 1 && off_control==0){
+
 	  		uint8_t message_on = light_on(place, &huart3);
 
 	  		key_control = 0;
@@ -349,8 +393,9 @@ ring_buffer_init(&usart2_rb, usart2_buffer, USART2_BUFFER_SIZE);
 				  ssd1306_SetCursor(45, 30);
 				  ssd1306_UpdateScreen();
 
-				  ssd1306_WriteString("Bedroom on", Font_7x10, White);
+				  ssd1306_WriteString("Room on", Font_7x10, White);
 				  ssd1306_UpdateScreen();
+
 
 				  //HAL_UART_Transmit(&huart3, "bedroom:1", 9, 10);
 				 break;
@@ -390,7 +435,7 @@ ring_buffer_init(&usart2_rb, usart2_buffer, USART2_BUFFER_SIZE);
 	  			}
 	  }
 	  //se apaga la luz activada después de 5 segundos
-		  //turn_off_with_time();
+		  turn_off_with_time();
 
 
 	  //apagar la luz correspndiente
@@ -404,6 +449,10 @@ ring_buffer_init(&usart2_rb, usart2_buffer, USART2_BUFFER_SIZE);
 		  turn_off_completely();
 		  off_everything = 0;
 		  low_power_mode();
+	  }
+
+	  if(lights_correct_password == 1){
+
 	  }
 
     /* USER CODE END WHILE */

@@ -27,9 +27,9 @@ uint8_t light_on(uint8_t place, UART_HandleTypeDef *huart){
 	switch(place){
 	case 1:
 		Bedroom_on = HAL_GetTick();
-		printf("Bedroom\r\n");
+		printf("Room\r\n");
 		HAL_GPIO_WritePin(Room_GPIO_Port, Room_Pin, GPIO_PIN_RESET);
-		HAL_UART_Transmit(huart, "bedroom:1", 9, 10);
+		HAL_UART_Transmit(huart, "room:1", 6, 10);
 		place_on = 1;
 	break;
 	case 2:
@@ -83,12 +83,12 @@ uint8_t blinking_led_ret(uint8_t *toggles){
 
 //mensajes de bienvenida
 void messages(void){
-	printf("Welcome to your home!\r\n");
+	printf("Welcome to your home!\r\n\r\n");
 	printf("--In which room do you want to be?--\r\n");
-	printf("Bedroom: Press A \r\n");
-	printf("Living Room: Press B \r\n");
-	printf("bathroom: Press C \r\n");
-	printf("Kitchen: Press D \r\n");
+	printf("	Room: Press A \r\n");
+	printf("	Living Room: Press B \r\n");
+	printf("	bathroom: Press C \r\n");
+	printf("	Kitchen: Press D \r\n");
 }
 
 
@@ -123,7 +123,7 @@ void turn_off(uint8_t turn_off_light, UART_HandleTypeDef *huart){
 
 	switch (turn_off_light){
 	case 1:
-		HAL_UART_Transmit(huart, "bedroom:0", 9, 10);
+		HAL_UART_Transmit(huart, "room:0", 6, 10);
 		HAL_GPIO_WritePin(Room_GPIO_Port, Room_Pin, GPIO_PIN_SET);
 	break;
 

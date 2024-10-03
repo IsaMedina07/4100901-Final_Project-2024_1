@@ -7,7 +7,7 @@
 
 #ifndef INC_BLINKING_LEDS_H_
 #define INC_BLINKING_LEDS_H_
-#define WAITING_TIME 5000 //tiempo de espera para el apagado de las luces
+#define WAITING_TIME 20000 //tiempo de espera para el apagado de las luces
 #include "main.h"
 
 #include <stdint.h>
