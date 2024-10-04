@@ -18,3 +18,7 @@ registradas en la pantalla OLED y la comunicación por UART en el YAT.
 
 ### - Funciones para el módulo WiFi:
 A través de una aplicación en donde se pueden ingresar dos usuarios es posible encender o apagar a gusto las luces del hogar, ya que los datos de usuario y de control de las luces se encuentran almacenados en un sevidor de FireBase. El ESP01 tiene comunicacion con la núcleo STm32l476rg a través del periférico RTC del STM32L476RG, donde es posible compartir información por medio del puerto de comunicación USART.
+
+### Arquitectura STM32l476rg
+![image](https://github.com/user-attachments/assets/0047b6d3-9051-465e-aa42-0ab8e09e095b)
+
